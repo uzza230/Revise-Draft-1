@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDT LEVEL UP MULTI GAME CHALLENGE ระดับชาติ ครั้งที่ 1</title>
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- นำเข้า FontAwesome สำหรับไอคอน -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --blue: #1a56db;
+            --blue-dark: #123f9e;
+            --blue-darker: #0c2c70;
+            --yellow: #ffc220;
+            --yellow-dark: #f5a800;
+            --ink: #1c2333;
+            --muted: #5c6478;
+            --bg: #eef3fb;
+            --card: #ffffff;
+            --line: #e3e8f3;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Sarabun', sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+            min-height: 100vh;
+        }
+
+        /* ===== แถบบนสุด ===== */
+        .top-strip {
+            background: var(--blue);
+            color: #eaf1ff;
+            font-size: 0.82em;
+            padding: 6px 16px;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== ส่วนหัว (โลโก้ + ชื่องาน) พื้นเหลือง ===== */
+        .site-header {
+            background: linear-gradient(180deg, var(--yellow), var(--yellow-dark));
+            padding: 22px 20px;
+        }
+
+        .site-header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .site-header .badge {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(18, 63, 158, 0.35);
+        }
+
+        .site-header h1 {
+            font-size: 1.5em;
+            color: var(--blue-darker);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* ===== เมนูนำทางแบบแถบน้ำเงินเต็มความกว้าง ===== */
+        .nav-menu {
+            background: var(--blue);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 0 10px;
+            box-shadow: 0 2px 10px rgba(18, 63, 158, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #d9e6ff;
+            padding: 16px 22px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .nav-btn.active {
+            background-color: var(--blue-dark);
+            border-bottom-color: var(--yellow);
+            color: #ffffff;
+        }
+
+        /* ===== กล่องเนื้อหาหลัก ===== */
+        .container {
+            background: var(--card);
+            border-radius: 0 0 16px 16px;
+            padding: 32px;
+            max-width: 900px;
+            width: 90%;
+            margin: 0 auto 40px auto;
+            box-shadow: 0 10px 30px rgba(18, 63, 158, 0.12);
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .container { width: 100%; border-radius: 0; padding: 24px 18px; }
+            .site-header h1 { font-size: 1.2em; }
+        }
+
+        /* ส่วนเนื้อหาในแต่ละแท็บ - ทุกแท็บซ้อนอยู่ในตำแหน่งเดียวกัน (grid cell เดียวกัน)
+           เพื่อให้กล่อง .container มีขนาดคงที่เท่ากับแท็บที่สูงที่สุดเสมอ ไม่ว่าจะเปิดแท็บไหน */
+        .tab-content-wrapper {
+            display: grid;
+        }
+
+        .tab-content {
+            grid-column: 1;
+            grid-row: 1;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+        }
+
+        .tab-content.active {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0s;
+        }
+
+        .tab-content h3 { color: var(--blue-darker); }
+
+        /* สไตล์เนื้อหา (Grid & รางวัล) */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .info-grid p { margin: 0; font-size: 1.1em; color: var(--ink); }
+        .highlight-red { color: #d92d3f; font-weight: bold; }
+        .highlight-green { color: #17924f; font-weight: bold; }
+
+        /* ===== ส่วนรางวัล แบบโพเดียม ===== */
+        .prize-section {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .prize-section > h2 {
+            text-align: center;
+            color: var(--yellow-dark);
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .podium-row {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr 1fr;
+            gap: 14px;
+            align-items: end;
+            margin-bottom: 30px;
+        }
+
+        .podium-card {
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .podium-card .rank-badge {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            font-weight: 800;
+        }
+
+        .podium-card .rank-title {
+            font-weight: 600;
+            font-size: 1.05em;
+            margin: 0;
+            color: var(--ink);
+        }
+
+        .podium-card .rank-sub {
+            font-size: 0.8em;
+            color: var(--muted);
+            margin-top: -6px;
+        }
+
+        .podium-card .prize-amount-box {
+            width: 100%;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 6px 0;
+        }
+
+        .podium-card .prize-amount-box .label {
+            font-size: 0.75em;
+            color: var(--muted);
+            display: block;
+        }
+
+        .podium-card .prize-amount-box .amount {
+            font-size: 1.5em;
+            font-weight: 800;
+        }
+
+        .podium-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 4px 0 0 0;
+            width: 100%;
+            text-align: left;
+        }
+
+        .podium-card ul li {
+            font-size: 0.82em;
+            color: var(--muted);
+            padding: 4px 0;
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .podium-card ul li i {
+            color: #17924f;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .podium-step {
+            margin-top: auto;
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* อันดับ 2 - เงิน */
+        .podium-second {
+            background: #f3f5fa;
+            border: 1px solid #ccd3e4;
+        }
+        .podium-second .rank-badge { background: #dde3f2; color: #4a5578; }
+        .podium-second .prize-amount-box { background: #e7ebf5; }
+        .podium-second .prize-amount-box .amount { color: var(--blue-darker); }
+        .podium-second .podium-step { background: #ccd3e4; color: #2c3550; }
+
+        /* อันดับ 1 - ทอง เด่นสุด */
+        .podium-first {
+            background: linear-gradient(180deg, #fff6dd, #ffffff);
+            border: 1px solid var(--yellow);
+            box-shadow: 0 8px 24px rgba(255, 194, 32, 0.35);
+            padding-top: 28px;
+            transform: translateY(-14px);
+        }
+        .podium-first .rank-badge {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 194, 32, 0.6);
+        }
+        .podium-first .rank-title { font-size: 1.15em; color: var(--yellow-dark); }
+        .podium-first .prize-amount-box { background: #fff1cc; border: 1px solid var(--yellow); }
+        .podium-first .prize-amount-box .amount { color: var(--yellow-dark); font-size: 1.8em; }
+        .podium-first .podium-step { background: linear-gradient(90deg, var(--yellow), var(--yellow-dark)); color: #ffffff; }
+
+        /* อันดับ 3 - ทองแดง */
+        .podium-third {
+            background: #fff2ec;
+            border: 1px solid #f3b48f;
+        }
+        .podium-third .rank-badge { background: #ffe1cf; color: #c05a26; }
+        .podium-third .prize-amount-box { background: #ffe9dc; }
+        .podium-third .prize-amount-box .amount { color: #c05a26; }
+        .podium-third .podium-step { background: #f3b48f; color: #6e2f0f; }
+
+        /* รางวัลชมเชย */
+        .honorable-heading {
+            font-size: 1em;
+            color: var(--muted);
+            margin: 0 0 14px 0;
+            padding-top: 14px;
+            border-top: 1px dashed var(--line);
+        }
+
+        .honorable-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .honorable-card {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .honorable-card .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .honorable-card .medal-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: rgba(26, 86, 219, 0.12);
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .honorable-card .amount {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: var(--blue);
+        }
+
+        .honorable-card .title {
+            font-weight: 600;
+            font-size: 0.95em;
+            margin: 0 0 2px 0;
+            color: var(--ink);
+        }
+
+        .honorable-card .sub {
+            font-size: 0.78em;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .honorable-card .check-line {
+            font-size: 0.8em;
+            color: var(--ink);
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .honorable-card .check-line i {
+            color: #17924f;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .honorable-tag {
+            display: inline-block;
+            background: #ffffff;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.72em;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .podium-row { grid-template-columns: 1fr; }
+            .podium-first { transform: translateY(0); order: -1; }
+            .honorable-row { grid-template-columns: 1fr; }
+        }
+
+        /* ===== กฎกติกาการแข่งขัน ===== */
+        .rules-list {
+            text-align: left;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .rule-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .rule-num {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(26, 86, 219, 0.12);
+            border: 1px solid rgba(26, 86, 219, 0.4);
+            color: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+
+        .rule-item p {
+            margin: 0;
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: var(--ink);
+        }
+
+        /* ===== Q&A เบื้องต้น ===== */
+        .qa-list {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .qa-item {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .qa-question {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            color: var(--blue);
+            font-size: 1em;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .qa-answer {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--ink);
+            line-height: 1.6;
+            padding-left: 24px;
+        }
+
+        /* สไตล์สำหรับกล่องแผนที่ */
+        .map-box {
+            background: var(--bg);
+            border: 2px dashed #b9c6e4;
+            border-radius: 15px;
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .map-box i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: var(--blue);
+        }
+
+        /* ปุ่มกดแบบ E-sports */
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 30px;
+            background: var(--bg);
+            border-radius: 15px;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn-register {
+            background: linear-gradient(90deg, var(--yellow), var(--yellow-dark));
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(255, 194, 32, 0.45);
+        }
+
+        .btn-register:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 22px rgba(255, 194, 32, 0.6);
+        }
+
+        .btn-download {
+            background: transparent;
+            color: var(--blue);
+            border: 2px solid var(--blue);
+        }
+
+        .btn-download:hover {
+            background: var(--blue);
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(26, 86, 219, 0.4);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 600px) {
+            .prize-item { flex-direction: column; text-align: center; gap: 5px; }
+            .site-header h1 { font-size: 1.15em; }
+            .nav-btn { padding: 12px 14px; font-size: 0.92em; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- แถบบนสุด -->
+    <div class="top-strip">ยินดีต้อนรับสู่เว็บไซต์การแข่งขัน IDT LEVEL UP MULTI GAME CHALLENGE</div>
+
+    <!-- ส่วนหัวพื้นเหลือง: โลโก้ + ชื่องาน -->
+    <div class="site-header">
+        <div class="site-header-inner">
+            <div class="badge"><i class="fa-solid fa-trophy"></i></div>
+            <h1>IDT LEVEL UP MULTI GAME CHALLENGE<br>ระดับชาติ ครั้งที่ 1</h1>
+        </div>
+    </div>
+
+    <!-- เมนูนำทางแถบน้ำเงิน -->
+    <div class="nav-menu">
+        <button class="nav-btn active" onclick="openTab(event, 'tab-details')">
+            <i class="fa-solid fa-circle-info"></i> ข้อมูลรายละเอียดงาน
+        </button>
+        <button class="nav-btn" onclick="openTab(event, 'tab-rules')">
+            <i class="fa-solid fa-gavel"></i> กฎกติกาการแข่งขัน
+        </button>
+        <button class="nav-btn" onclick="openTab(event, 'tab-qa')">
+            <i class="fa-solid fa-circle-question"></i> Q&A เบื้องต้น
+        </button>
+        <button class="nav-btn" onclick="openTab(event, 'tab-map')">
+            <i class="fa-solid fa-map-location-dot"></i> ผังสถานที่
+        </button>
+        <button class="nav-btn" onclick="openTab(event, 'tab-register')">
+            <i class="fa-solid fa-pen-to-square"></i> สมัครลงแข่ง
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="tab-content-wrapper">
+
+        <!-- แท็บ 1: ข้อมูลรายละเอียดงาน -->
+        <div id="tab-details" class="tab-content active">
+            <div class="info-grid">
+                <p>📅 <strong>วันแข่งขัน:</strong> 2 ธันวาคม 2026</p>
+                <p>📍 <strong>สถานที่:</strong> ตึกคณะอุตสาหกรรมและเทคโนโลยี</p>
+		<p>📍 มหาวิทยาลัยเทคโนโลยีราชมงคลรัตนโกสินทร์ วิทยาเขตวังไกลกังวล</p>
+
+                <p>⏳ <strong>เปิดรับสมัคร:</strong> <span class="highlight-red">เปิดรับสมัครตั้งแต่วันที่ 16 กันยายน 2569 ถึงวันที่ 30 ตุลาคม 2569</span></p>
+                <p>⚔️ <strong>ประเภทการแข่งขัน:</strong> <span class="highlight-green">การแข่งขันเกม REAL STEEL</span></p>
+            </div>
+
+            <!-- ===== โครงสร้างรางวัล แบบโพเดียม ===== -->
+            <div class="prize-section">
+                <h2>ชิงเงินรางวัลการแข่งขัน รวม 6,000 บาท</h2>
+
+                <div class="podium-row">
+                    <!-- อันดับ 2 -->
+                    <div class="podium-card podium-second">
+                        <div class="rank-badge">2</div>
+                        <p class="rank-title">รองชนะเลิศอันดับ 1</p>
+                        <span class="rank-sub">(อันดับที่ 2)</span>
+                        <div class="prize-amount-box">
+                            <span class="label">เงินรางวัล</span>
+                            <span class="amount">1,500 บาท</span>
+                        </div>
+                        <ul>
+
+                        </ul>
+                        <div class="podium-step">PODIUM STEP #2</div>
+                    </div>
+
+                    <!-- อันดับ 1 -->
+                    <div class="podium-card podium-first">
+                        <div class="rank-badge">1</div>
+                        <p class="rank-title">รางวัลชนะเลิศอันดับ 1</p>
+                        <span class="rank-sub">(อันดับ 1)</span>
+                        <div class="prize-amount-box">
+                            <span class="label">เงินรางวัลชนะเลิศ</span>
+                            <span class="amount">3,000 บาท</span>
+                        </div>
+                        <ul>
+
+                        </ul>
+                        <div class="podium-step">🥇 1st PLACE PODIUM</div>
+                    </div>
+
+                    <!-- อันดับ 3 -->
+                    <div class="podium-card podium-third">
+                        <div class="rank-badge">3</div>
+                        <p class="rank-title">รองชนะเลิศอันดับ 2</p>
+                        <span class="rank-sub">(อันดับที่ 3)</span>
+                        <div class="prize-amount-box">
+                            <span class="label">เงินรางวัล</span>
+                            <span class="amount">500 บาท</span>
+                        </div>
+                        <ul>
+
+                        </ul>
+                        <div class="podium-step">PODIUM STEP #3</div>
+                    </div>
+                </div>
+
+                <p class="honorable-heading">รางวัลได้รับความนิยม  - 2 รางวัล popular vote </p>
+                <div class="honorable-row">
+                    <div class="honorable-card">
+                        <div class="top-row">
+                            <div class="medal-icon"><i class="fa-solid fa-medal"></i></div>
+                            <span class="amount"></span>
+                        </div>
+                        <p class="title">ได้รับความนิยม 1 (อันดับ 4 ร่วม)</p>
+                        <span class="sub">เงินรางวัลคู่ละ 500 บาท (คนละ 250 บาท)</span>
+
+                        <span class="honorable-tag">Popular Vote#1</span>
+                    </div>
+		<div class="honorable-card">
+                        <div class="top-row">
+                            <div class="medal-icon"><i class="fa-solid fa-medal"></i></div>
+                            <span class="amount"></span>
+                        </div>
+                        <p class="title">ได้รับความนิยม 2 (อันดับ 4 ร่วม)</p>
+                        <span class="sub">เงินรางวัลคู่ละ 500 บาท (คนละ 250 บาท)</span>
+
+                        <span class="honorable-tag">Popular Vote#2</span>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- แท็บ: กฎกติกาการแข่งขัน -->
+        <div id="tab-rules" class="tab-content">
+            <h3>📜 กฎกติกาการแข่งขัน</h3>
+            <div class="rules-list">
+                <div class="rule-item">
+                    <span class="rule-num">1</span>
+                    <p>ผู้เข้าแข่งขันต้องเป็นนักเรียน/นักศึกษาที่กำลังศึกษาอยู่ และต้องแสดงบัตรประจำตัวนักเรียน/นักศึกษาในวันแข่งขัน</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">2</span>
+                    <p>ห้ามใช้โปรแกรมช่วยเล่นหรือกระทำการทุจริตทุกรูปแบบ หากตรวจพบจะถูกตัดสิทธิ์ทันที </p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">3</span>
+                    <p>การแข่งขันใช้รูปแบบ Single Elimination (แพ้คัดออก) โดยจะแจ้งสายการแข่งขันในวันจัดงาน</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">4</span>
+                    <p>ผู้เข้าแข่งขันต้องมารายงานตัวก่อนเวลาแข่งขันอย่างน้อย 30 นาที มิฉะนั้นจะถือว่าสละสิทธิ์</p>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-num">5</span>
+                    <p>คำตัดสินของคณะกรรมการถือเป็นที่สิ้นสุด</p>
+                </div>
+                
+            </div>
+            <p style="text-align:center; font-size:0.85em; color:#5c6478; margin-top:20px;">* </p>
+        </div>
+
+        <!-- แท็บ: Q&A เบื้องต้น -->
+        <div id="tab-qa" class="tab-content">
+            <h3>❓ คำถามที่พบบ่อย</h3>
+            <div class="qa-list">
+                <div class="qa-item">
+                    <p class="qa-question"><i class="fa-solid fa-circle-question"></i> ต้องเสียค่าสมัครหรือไม่?</p>
+                    <p class="qa-answer">ไม่มีค่าใช้จ่ายในการสมัครเข้าร่วมการแข่งขัน</p>
+                </div>
+                <div class="qa-item">
+                    <p class="qa-question"><i class="fa-solid fa-circle-question"></i> ต้องเตรียมอุปกรณ์เองหรือไม่?</p>
+                    <p class="qa-answer">ทางผู้จัดงานเตรียมอุปกรณ์การแข่งขันไว้ให้ทั้งหมด ผู้เข้าแข่งขันไม่ต้องนำอุปกรณ์มาเอง</p>
+                </div>                
+		<div class="qa-item">
+                    <p class="qa-question"><i class="fa-solid fa-circle-question"></i> หากมีข้อสงสัยเพิ่มเติมติดต่อใครได้บ้าง?</p>
+                    <p class="qa-answer">สามารถติดต่อสอบถามผ่านช่องทางที่ระบุในฟอร์มสมัคร หรือหน้าเพจประชาสัมพันธ์ของโครงการ</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- แท็บ 2: ผังจัดสถานที่ -->
+        <div id="tab-map" class="tab-content">
+            <h3>📍 ผังสถานที่แข่งขัน</h3>
+            <div class="map-box">
+                <i class="fa-regular fa-image"></i>
+                <p>กำลังรอรูปภาพผังสถานที่<br>ไม่ต้องรีบนะครับเอาสวยๆ ไปเลยครับ<3</p>
+                <!-- ตัวอย่างการใส่รูป: <img src="link-รูปภาพผังงาน" alt="ผังงาน" style="width:100%; border-radius:10px;"> -->
+            </div>
+            <p style="text-align: left; padding: 0 20px;">
+                <strong>สถานที่:</strong> มหาวิทยาลัยราชมงคลรัตนโกสินทร์ วิทยาเขต วังไกลกังวล<br>
+                <em></em>
+            </p>
+        </div>
+
+        <!-- แท็บ 3: สมัครลงแข่ง -->
+        <div id="tab-register" class="tab-content">
+            <h3>📝 ขั้นตอนการสมัครและทดลองเล่น</h3>
+            <p><br>เปิดรับสมัครถึงวันที่ <strong>30 ตุลาคม 2026</strong> เท่านั้น!</p>
+
+            <div class="btn-container">
+                <!-- ลิ้งก์ฟอร์มสมัคร -->
+                <a href="https://forms.gle/oHo4CokdX76Q1y1X6" class="btn btn-register"><i class="fa-solid fa-trophy"></i> สมัครลงแข่งขัน คลิกที่นี่</a>
+
+                <!-- ปุ่มโหลดเกม -->
+                <button onclick="downloadGame()" class="btn btn-download"><i class="fa-solid fa-gamepad"></i> ทดลองเล่น / โหลดเกม</button>
+            </div>
+        </div>
+
+        </div>
+
+    </div>
+
+    <!-- สคริปต์สำหรับการทำงานของ Tab และปุ่ม -->
+    <script>
+        // ฟังก์ชันสลับหน้าแท็บ
+        function openTab(evt, tabName) {
+            var i, tabcontent, navbtns;
+
+            // ซ่อนเนื้อหาทั้งหมด
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+
+            // ลบสถานะ active ออกจากปุ่มทั้งหมด
+            navbtns = document.getElementsByClassName("nav-btn");
+            for (i = 0; i < navbtns.length; i++) {
+                navbtns[i].classList.remove("active");
+            }
+
+            // แสดงเนื้อหาที่เลือก และเพิ่มสถานะ active ให้ปุ่มที่โดนกด
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // ฟังก์ชันดาวน์โหลดเกมแยกต่างหาก
+        function downloadGame() {
+            if(confirm("ระบบจะพาคุณไปยังหน้าต่างใหม่ เพื่อโหลดเกม/ทดลองเล่น ยืนยันหรือไม่?")) {
+                window.open('http://www.realsteel.rf.gd/', '_blank');
+            }
+        }
+    </script>
+
+</body>
+</html>
